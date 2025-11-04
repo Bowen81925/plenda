@@ -7,73 +7,106 @@
     <style>
         * {
             box-sizing: border-box;
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
             margin: 0;
             padding: 20px;
-            background-color: #f5f5f5;
-            touch-action: pan-x pan-y;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
         }
         
         h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 20px;
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            margin: 10px 0 0 0;
+            font-size: 1.1em;
+            opacity: 0.9;
+            font-weight: 300;
         }
         
         .container {
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
+            gap: 25px;
+            padding: 30px;
         }
         
         .controls {
             display: flex;
             justify-content: center;
-            gap: 15px;
+            gap: 20px;
             margin-bottom: 10px;
         }
         
         button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
             color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 50px;
             cursor: pointer;
             font-size: 16px;
-            transition: background-color 0.3s;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
         }
         
         button:hover {
-            background-color: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
         }
         
         #clearBtn {
-            background-color: #f44336;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
         }
         
         #clearBtn:hover {
-            background-color: #d32f2f;
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
         }
         
         #undoBtn {
-            background-color: #ff9800;
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.3);
         }
         
         #undoBtn:hover {
-            background-color: #e68900;
+            box-shadow: 0 6px 20px rgba(243, 156, 18, 0.4);
         }
         
         .schedule-container {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            overflow-x: auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border: 1px solid #e1e8ed;
         }
         
         table {
@@ -82,171 +115,294 @@
         }
         
         th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
+            border: 1px solid #e1e8ed;
+            padding: 15px;
             text-align: center;
-            min-width: 120px;
+            min-width: 130px;
         }
         
         th {
-            background-color: #f2f2f2;
-            font-weight: bold;
+            background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%);
+            color: white;
+            font-weight: 600;
+            font-size: 1.1em;
+            position: sticky;
+            top: 0;
         }
         
         .time-slot {
-            background-color: #f9f9f9;
+            background: linear-gradient(135deg, #ecf0f1 0%, #bdc3c7 100%);
             font-weight: bold;
+            color: #2c3e50;
+            font-size: 1.1em;
         }
         
         .drop-zone {
-            min-height: 60px;
-            transition: background-color 0.2s;
+            min-height: 70px;
+            transition: all 0.3s ease;
             position: relative;
+            background: #f8f9fa;
         }
         
         .drop-zone.drag-over {
-            background-color: #e6f7ff;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            transform: scale(1.02);
         }
         
         .drop-zone.drop-target {
-            background-color: #e6f7ff;
-            border: 2px dashed #1890ff;
+            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            border: 2px dashed #4caf50;
         }
         
         .subjects-container {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 15px;
             justify-content: center;
-            padding: 15px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            padding: 25px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border: 1px solid #e1e8ed;
         }
         
         .subject {
-            padding: 8px 15px;
-            border-radius: 4px;
+            padding: 12px 20px;
+            border-radius: 12px;
             color: white;
             cursor: grab;
-            font-weight: bold;
+            font-weight: 600;
             user-select: none;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             touch-action: none;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+            font-size: 1em;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .subject::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .subject:hover::before {
+            left: 100%;
         }
         
         .subject:active {
             cursor: grabbing;
+            transform: scale(0.95);
+        }
+        
+        .subject:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
         }
         
         .subject.M {
-            opacity: 0.8;
-            border: 2px dashed rgba(255,255,255,0.5);
+            opacity: 0.9;
+            border: 2px dashed rgba(255,255,255,0.6);
         }
         
         .subject.L {
             opacity: 1;
-            border: 2px solid rgba(255,255,255,0.8);
+            border: 2px solid rgba(255,255,255,0.9);
         }
         
-        .history { background-color: gray; }
-        .music { background-color: blue; }
-        .discovery { background-color: green; }
-        .biology { background-color: green; }
-        .french { background-color: pink; color: #333; }
-        .english { background-color: orange; }
-        .dutch { background-color: blue; }
-        .geography { background-color: green; }
-        .tech { background-color: gold; color: #333; }
+        /* Vak kleuren */
+        .history { background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%); }
+        .music { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); }
+        .discovery { background: linear-gradient(135deg, #27ae60 0%, #229954 100%); }
+        .biology { background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); }
+        .french { background: linear-gradient(135deg, #e84393 0%, #fd79a8 100%); color: #333; }
+        .english { background: linear-gradient(135deg, #e67e22 0%, #f39c12 100%); }
+        .dutch { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); }
+        .geography { background: linear-gradient(135deg, #27ae60 0%, #229954 100%); }
+        .tech { background: linear-gradient(135deg, #f1c40f 0%, #f39c12 100%); color: #333; }
+        .math { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); }
         
         .empty-slot {
-            color: #aaa;
+            color: #bdc3c7;
             font-style: italic;
+            font-size: 0.9em;
         }
         
         .remove-btn {
             position: absolute;
-            top: 2px;
-            right: 2px;
+            top: 5px;
+            right: 5px;
             cursor: pointer;
-            font-size: 12px;
-            background: rgba(0,0,0,0.3);
+            font-size: 14px;
+            background: rgba(0,0,0,0.4);
             border-radius: 50%;
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
+            transition: all 0.3s ease;
+            opacity: 0;
+        }
+        
+        .drop-zone:hover .remove-btn {
+            opacity: 1;
+        }
+        
+        .remove-btn:hover {
+            background: rgba(231, 76, 60, 0.8);
+            transform: scale(1.1);
         }
         
         .subject-dragging {
             opacity: 0.7;
-            transform: rotate(5deg);
+            transform: rotate(5deg) scale(1.1);
         }
         
         .type-indicator {
-            font-size: 0.8em;
-            margin-left: 5px;
+            font-size: 0.75em;
+            margin-left: 8px;
             background: rgba(255,255,255,0.3);
-            padding: 2px 6px;
-            border-radius: 10px;
+            padding: 3px 8px;
+            border-radius: 15px;
+            font-weight: 700;
         }
         
         .drag-ghost {
             position: fixed;
             z-index: 1000;
             pointer-events: none;
-            opacity: 0.8;
+            opacity: 0.9;
             transform: translate(-50%, -50%);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            border-radius: 12px;
         }
         
         .touch-dragging {
             opacity: 0.5;
         }
+        
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.9em;
+            border-top: 1px solid #e1e8ed;
+            background: #f8f9fa;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 1200px) {
+            .container {
+                padding: 20px;
+            }
+            
+            th, td {
+                padding: 10px;
+                min-width: 110px;
+            }
+            
+            .subject {
+                padding: 10px 15px;
+                font-size: 0.9em;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .app-container {
+                border-radius: 15px;
+            }
+            
+            .header {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 200px;
+            }
+            
+            th, td {
+                padding: 8px;
+                min-width: 80px;
+                font-size: 0.9em;
+            }
+            
+            .subjects-container {
+                padding: 15px;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>Schoolrooster Planner</h1>
-    
-    <div class="container">
-        <!-- Knoppen bovenaan -->
-        <div class="controls">
-            <button id="clearBtn">Clear All</button>
-            <button id="undoBtn">Undo</button>
+    <div class="app-container">
+        <div class="header">
+            <h1>📚 Schoolrooster Planner</h1>
+            <p class="subtitle">Sleep vakken naar het rooster • Klik om tussen M en L te wisselen</p>
         </div>
         
-        <!-- Rooster in het midden -->
-        <div class="schedule-container">
-            <table id="scheduleTable">
-                <thead>
-                    <tr>
-                        <th>Tijd / Dag</th>
-                        <th>Maandag</th>
-                        <th>Dinsdag</th>
-                        <th>Woensdag</th>
-                        <th>Donderdag</th>
-                        <th>Vrijdag</th>
-                        <th>Zaterdag</th>
-                        <th>Zondag</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Rijen worden hier toegevoegd met JavaScript -->
-                </tbody>
-            </table>
+        <div class="container">
+            <!-- Knoppen bovenaan -->
+            <div class="controls">
+                <button id="clearBtn">🗑️ Clear All</button>
+                <button id="undoBtn">↶ Undo</button>
+            </div>
+            
+            <!-- Rooster in het midden -->
+            <div class="schedule-container">
+                <table id="scheduleTable">
+                    <thead>
+                        <tr>
+                            <th>Tijd / Dag</th>
+                            <th>Maandag</th>
+                            <th>Dinsdag</th>
+                            <th>Woensdag</th>
+                            <th>Donderdag</th>
+                            <th>Vrijdag</th>
+                            <th>Zaterdag</th>
+                            <th>Zondag</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Rijen worden hier toegevoegd met JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Vakken onderaan -->
+            <div class="subjects-container" id="subjectsContainer">
+                <!-- Vakken worden hier toegevoegd met JavaScript -->
+            </div>
         </div>
         
-        <!-- Vakken onderaan -->
-        <div class="subjects-container" id="subjectsContainer">
-            <!-- Vakken worden hier toegevoegd met JavaScript -->
+        <div class="footer">
+            <p>Je rooster wordt automatisch opgeslagen • Werkt op desktop en mobiel</p>
         </div>
     </div>
 
     <script>
         // Vakken definiëren - nu maar één keer elk vak
         const subjects = [
+            { name: "Wiskunde", color: "math", type: "M" },
             { name: "Geschiedenis", color: "history", type: "M" },
             { name: "Muziek", color: "music", type: "M" },
             { name: "Discovery", color: "discovery", type: "M" },
@@ -600,14 +756,16 @@
 
         // Alles wissen
         function clearAll() {
-            saveStateForUndo();
-            
-            const cells = document.querySelectorAll('.drop-zone');
-            cells.forEach(cell => {
-                cell.innerHTML = '';
-            });
-            
-            saveToLocalStorage();
+            if (confirm("Weet je zeker dat je het hele rooster wilt leegmaken?")) {
+                saveStateForUndo();
+                
+                const cells = document.querySelectorAll('.drop-zone');
+                cells.forEach(cell => {
+                    cell.innerHTML = '';
+                });
+                
+                saveToLocalStorage();
+            }
         }
 
         // Vorige staat opslaan voor undo
