@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schoolrooster Planner</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            touch-action: pan-x pan-y;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 10px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        #clearBtn {
+            background-color: #f44336;
+        }
+        
+        #clearBtn:hover {
+            background-color: #d32f2f;
+        }
+        
+        #undoBtn {
+            background-color: #ff9800;
+        }
+        
+        #undoBtn:hover {
+            background-color: #e68900;
+        }
+        
+        .schedule-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+            min-width: 120px;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        .time-slot {
+            background-color: #f9f9f9;
+            font-weight: bold;
+        }
+        
+        .drop-zone {
+            min-height: 60px;
+            transition: background-color 0.2s;
+            position: relative;
+        }
+        
+        .drop-zone.drag-over {
+            background-color: #e6f7ff;
+        }
+        
+        .drop-zone.drop-target {
+            background-color: #e6f7ff;
+            border: 2px dashed #1890ff;
+        }
+        
+        .subjects-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .subject {
+            padding: 8px 15px;
+            border-radius: 4px;
+            color: white;
+            cursor: grab;
+            font-weight: bold;
+            user-select: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            touch-action: none;
+            transition: all 0.2s ease;
+        }
+        
+        .subject:active {
+            cursor: grabbing;
+        }
+        
+        .subject.M {
+            opacity: 0.8;
+            border: 2px dashed rgba(255,255,255,0.5);
+        }
+        
+        .subject.L {
+            opacity: 1;
+            border: 2px solid rgba(255,255,255,0.8);
+        }
+        
+        .history { background-color: gray; }
+        .music { background-color: blue; }
+        .discovery { background-color: green; }
+        .biology { background-color: green; }
+        .french { background-color: pink; color: #333; }
+        .english { background-color: orange; }
+        .dutch { background-color: blue; }
+        .geography { background-color: green; }
+        .tech { background-color: gold; color: #333; }
+        
+        .empty-slot {
+            color: #aaa;
+            font-style: italic;
+        }
+        
+        .remove-btn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            cursor: pointer;
+            font-size: 12px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .subject-dragging {
+            opacity: 0.7;
+            transform: rotate(5deg);
+        }
+        
+        .type-indicator {
+            font-size: 0.8em;
+            margin-left: 5px;
+            background: rgba(255,255,255,0.3);
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        
+        .drag-ghost {
+            position: fixed;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0.8;
+            transform: translate(-50%, -50%);
+        }
+        
+        .touch-dragging {
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <h1>Schoolrooster Planner</h1>
+    
+    <div class="container">
+        <!-- Knoppen bovenaan -->
+        <div class="controls">
+            <button id="clearBtn">Clear All</button>
+            <button id="undoBtn">Undo</button>
+        </div>
+        
+        <!-- Rooster in het midden -->
+        <div class="schedule-container">
+            <table id="scheduleTable">
+                <thead>
+                    <tr>
+                        <th>Tijd / Dag</th>
+                        <th>Maandag</th>
+                        <th>Dinsdag</th>
+                        <th>Woensdag</th>
+                        <th>Donderdag</th>
+                        <th>Vrijdag</th>
+                        <th>Zaterdag</th>
+                        <th>Zondag</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rijen worden hier toegevoegd met JavaScript -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Vakken onderaan -->
+        <div class="subjects-container" id="subjectsContainer">
+            <!-- Vakken worden hier toegevoegd met JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        // Vakken definiëren - nu maar één keer elk vak
+        const subjects = [
+            { name: "Geschiedenis", color: "history", type: "M" },
+            { name: "Muziek", color: "music", type: "M" },
+            { name: "Discovery", color: "discovery", type: "M" },
+            { name: "Biologie", color: "biology", type: "M" },
+            { name: "Frans", color: "french", type: "M" },
+            { name: "Engels", color: "english", type: "M" },
+            { name: "Nederlands", color: "dutch", type: "M" },
+            { name: "Aardrijkskunde", color: "geography", type: "M" },
+            { name: "O&O", color: "tech", type: "M" }
+        ];
+
+        // Geschiedenis voor undo-functionaliteit
+        let actionHistory = [];
+
+        // DOM-elementen
+        const subjectsContainer = document.getElementById('subjectsContainer');
+        const scheduleTable = document.getElementById('scheduleTable');
+        const clearBtn = document.getElementById('clearBtn');
+        const undoBtn = document.getElementById('undoBtn');
+
+        // Touch variabelen
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let draggedElement = null;
+        let dragGhost = null;
+        let currentDropTarget = null;
+
+        // Initialisatie
+        document.addEventListener('DOMContentLoaded', function() {
+            createSubjects();
+            createSchedule();
+            loadFromLocalStorage();
+            setupEventListeners();
+        });
+
+        // Vakken maken - nu maar één keer elk vak
+        function createSubjects() {
+            subjects.forEach(subject => {
+                const subjectElement = document.createElement('div');
+                subjectElement.className = `subject ${subject.color} ${subject.type}`;
+                subjectElement.innerHTML = `${subject.name} <span class="type-indicator">${subject.type}</span>`;
+                subjectElement.draggable = true;
+                subjectElement.dataset.subject = subject.name;
+                subjectElement.dataset.type = subject.type;
+                subjectElement.dataset.color = subject.color;
+                
+                // Klik event voor type veranderen
+                subjectElement.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    toggleSubjectType(this);
+                });
+                
+                // Mouse drag events
+                subjectElement.addEventListener('dragstart', handleDragStart);
+                subjectElement.addEventListener('dragend', handleDragEnd);
+                
+                // Touch events
+                subjectElement.addEventListener('touchstart', handleTouchStart, { passive: false });
+                subjectElement.addEventListener('touchmove', handleTouchMove, { passive: false });
+                subjectElement.addEventListener('touchend', handleTouchEnd);
+                
+                subjectsContainer.appendChild(subjectElement);
+            });
+        }
+
+        // Type veranderen (M/L)
+        function toggleSubjectType(element) {
+            const currentType = element.dataset.type;
+            const newType = currentType === 'M' ? 'L' : 'M';
+            
+            element.dataset.type = newType;
+            element.innerHTML = `${element.dataset.subject} <span class="type-indicator">${newType}</span>`;
+            element.className = `subject ${element.dataset.color} ${newType}`;
+        }
+
+        // Rooster maken
+        function createSchedule() {
+            const tbody = scheduleTable.querySelector('tbody');
+            
+            for (let i = 1; i <= 10; i++) {
+                const row = document.createElement('tr');
+                
+                // Tijdvak cel
+                const timeCell = document.createElement('td');
+                timeCell.className = 'time-slot';
+                timeCell.textContent = i;
+                row.appendChild(timeCell);
+                
+                // Dagen
+                for (let j = 0; j < 7; j++) {
+                    const cell = document.createElement('td');
+                    cell.className = 'drop-zone';
+                    cell.dataset.time = i;
+                    cell.dataset.day = j;
+                    
+                    // Mouse events
+                    cell.addEventListener('dragover', handleDragOver);
+                    cell.addEventListener('dragenter', handleDragEnter);
+                    cell.addEventListener('dragleave', handleDragLeave);
+                    cell.addEventListener('drop', handleDrop);
+                    
+                    row.appendChild(cell);
+                }
+                
+                tbody.appendChild(row);
+            }
+        }
+
+        // Event listeners instellen
+        function setupEventListeners() {
+            clearBtn.addEventListener('click', clearAll);
+            undoBtn.addEventListener('click', undoLastAction);
+            
+            // Voorkom standaard touch gedrag op de hele pagina
+            document.addEventListener('touchmove', function(e) {
+                if (draggedElement) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+        }
+
+        // Mouse drag and drop handlers
+        function handleDragStart(e) {
+            draggedElement = e.target;
+            e.dataTransfer.setData('text/plain', JSON.stringify({
+                subject: e.target.dataset.subject,
+                type: e.target.dataset.type,
+                color: e.target.dataset.color
+            }));
+            setTimeout(() => {
+                e.target.classList.add('subject-dragging');
+            }, 0);
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('subject-dragging');
+            draggedElement = null;
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDragEnter(e) {
+            e.preventDefault();
+            e.target.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.target.classList.remove('drag-over');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.target.classList.remove('drag-over');
+            
+            const data = JSON.parse(e.dataTransfer.getData('text/plain'));
+            const time = e.target.dataset.time;
+            const day = e.target.dataset.day;
+            
+            // Opslaan vorige staat voor undo
+            saveStateForUndo();
+            
+            // Vak toevoegen aan cel
+            addSubjectToCell(e.target, data);
+            
+            // Opslaan in localStorage
+            saveToLocalStorage();
+            
+            draggedElement = null;
+        }
+
+        // Touch event handlers
+        function handleTouchStart(e) {
+            if (e.touches.length !== 1) return;
+            
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            draggedElement = e.target;
+            
+            // Maak een ghost element voor visuele feedback
+            dragGhost = draggedElement.cloneNode(true);
+            dragGhost.classList.add('drag-ghost');
+            dragGhost.style.width = draggedElement.offsetWidth + 'px';
+            dragGhost.style.height = draggedElement.offsetHeight + 'px';
+            document.body.appendChild(dragGhost);
+            
+            draggedElement.classList.add('touch-dragging');
+            
+            e.preventDefault();
+        }
+
+        function handleTouchMove(e) {
+            if (!draggedElement || e.touches.length !== 1) return;
+            
+            const touch = e.touches[0];
+            
+            // Update ghost positie
+            if (dragGhost) {
+                dragGhost.style.left = touch.clientX + 'px';
+                dragGhost.style.top = touch.clientY + 'px';
+            }
+            
+            // Zoek het drop-zone element onder de touch
+            const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
+            const dropZone = elements.find(el => el.classList.contains('drop-zone'));
+            
+            // Update drop target highlighting
+            if (currentDropTarget && currentDropTarget !== dropZone) {
+                currentDropTarget.classList.remove('drop-target');
+            }
+            
+            if (dropZone && dropZone !== currentDropTarget) {
+                dropZone.classList.add('drop-target');
+                currentDropTarget = dropZone;
+            }
+            
+            e.preventDefault();
+        }
+
+        function handleTouchEnd(e) {
+            if (!draggedElement) return;
+            
+            const touch = e.changedTouches[0];
+            
+            // Zoek het drop-zone element onder de touch
+            const elements = document.elementsFromPoint(touch.clientX, touch.clientY);
+            const dropZone = elements.find(el => el.classList.contains('drop-zone'));
+            
+            if (dropZone) {
+                const data = {
+                    subject: draggedElement.dataset.subject,
+                    type: draggedElement.dataset.type,
+                    color: draggedElement.dataset.color
+                };
+                
+                // Opslaan vorige staat voor undo
+                saveStateForUndo();
+                
+                // Vak toevoegen aan cel
+                addSubjectToCell(dropZone, data);
+                
+                // Opslaan in localStorage
+                saveToLocalStorage();
+            }
+            
+            // Cleanup
+            if (dragGhost) {
+                dragGhost.remove();
+                dragGhost = null;
+            }
+            
+            if (currentDropTarget) {
+                currentDropTarget.classList.remove('drop-target');
+                currentDropTarget = null;
+            }
+            
+            draggedElement.classList.remove('touch-dragging');
+            draggedElement = null;
+        }
+
+        // Vak toevoegen aan cel
+        function addSubjectToCell(cell, data) {
+            cell.innerHTML = '';
+            
+            const subjectElement = document.createElement('div');
+            subjectElement.className = `subject ${data.color} ${data.type}`;
+            subjectElement.innerHTML = `${data.subject} <span class="type-indicator">${data.type}</span>`;
+            subjectElement.draggable = true;
+            subjectElement.dataset.subject = data.subject;
+            subjectElement.dataset.type = data.type;
+            subjectElement.dataset.color = data.color;
+            
+            // Klik event voor type veranderen
+            subjectElement.addEventListener('click', function(e) {
+                e.stopPropagation();
+                saveStateForUndo();
+                toggleSubjectType(this);
+                saveToLocalStorage();
+            });
+            
+            // Mouse drag events
+            subjectElement.addEventListener('dragstart', handleDragStart);
+            subjectElement.addEventListener('dragend', handleDragEnd);
+            
+            // Touch events
+            subjectElement.addEventListener('touchstart', handleTouchStart, { passive: false });
+            subjectElement.addEventListener('touchmove', handleTouchMove, { passive: false });
+            subjectElement.addEventListener('touchend', handleTouchEnd);
+            
+            // Verwijder knop
+            const removeBtn = document.createElement('span');
+            removeBtn.className = 'remove-btn';
+            removeBtn.textContent = '×';
+            removeBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                saveStateForUndo();
+                cell.innerHTML = '';
+                saveToLocalStorage();
+            });
+            
+            cell.appendChild(subjectElement);
+            cell.appendChild(removeBtn);
+        }
+
+        // Opslaan in localStorage
+        function saveToLocalStorage() {
+            const scheduleData = {};
+            const cells = document.querySelectorAll('.drop-zone');
+            
+            cells.forEach(cell => {
+                const time = cell.dataset.time;
+                const day = cell.dataset.day;
+                const key = `${time}-${day}`;
+                
+                if (cell.querySelector('.subject')) {
+                    const subjectElement = cell.querySelector('.subject');
+                    scheduleData[key] = {
+                        subject: subjectElement.dataset.subject,
+                        type: subjectElement.dataset.type,
+                        color: subjectElement.dataset.color
+                    };
+                } else {
+                    scheduleData[key] = null;
+                }
+            });
+            
+            localStorage.setItem('schoolSchedule', JSON.stringify(scheduleData));
+        }
+
+        // Laden van localStorage
+        function loadFromLocalStorage() {
+            const savedData = localStorage.getItem('schoolSchedule');
+            
+            if (savedData) {
+                const scheduleData = JSON.parse(savedData);
+                const cells = document.querySelectorAll('.drop-zone');
+                
+                cells.forEach(cell => {
+                    const time = cell.dataset.time;
+                    const day = cell.dataset.day;
+                    const key = `${time}-${day}`;
+                    
+                    if (scheduleData[key]) {
+                        addSubjectToCell(cell, scheduleData[key]);
+                    }
+                });
+            }
+        }
+
+        // Alles wissen
+        function clearAll() {
+            saveStateForUndo();
+            
+            const cells = document.querySelectorAll('.drop-zone');
+            cells.forEach(cell => {
+                cell.innerHTML = '';
+            });
+            
+            saveToLocalStorage();
+        }
+
+        // Vorige staat opslaan voor undo
+        function saveStateForUndo() {
+            const currentState = {};
+            const cells = document.querySelectorAll('.drop-zone');
+            
+            cells.forEach(cell => {
+                const time = cell.dataset.time;
+                const day = cell.dataset.day;
+                const key = `${time}-${day}`;
+                
+                if (cell.querySelector('.subject')) {
+                    const subjectElement = cell.querySelector('.subject');
+                    currentState[key] = {
+                        subject: subjectElement.dataset.subject,
+                        type: subjectElement.dataset.type,
+                        color: subjectElement.dataset.color
+                    };
+                } else {
+                    currentState[key] = null;
+                }
+            });
+            
+            actionHistory.push(currentState);
+            
+            // Beperk de geschiedenis tot 10 acties
+            if (actionHistory.length > 10) {
+                actionHistory.shift();
+            }
+        }
+
+        // Laatste actie ongedaan maken
+        function undoLastAction() {
+            if (actionHistory.length > 0) {
+                const previousState = actionHistory.pop();
+                const cells = document.querySelectorAll('.drop-zone');
+                
+                cells.forEach(cell => {
+                    const time = cell.dataset.time;
+                    const day = cell.dataset.day;
+                    const key = `${time}-${day}`;
+                    
+                    cell.innerHTML = '';
+                    
+                    if (previousState[key]) {
+                        addSubjectToCell(cell, previousState[key]);
+                    }
+                });
+                
+                saveToLocalStorage();
+            }
+        }
+    </script>
+</body>
+</html>
